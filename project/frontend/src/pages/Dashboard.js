@@ -99,6 +99,9 @@ const Dashboard = () => {
             <Link to="/checklist" className="btn-action">
               📋 Biosecurity Checklist
             </Link>
+            <Link to="/database" className="btn-action">
+              🗄️ Database Schema
+            </Link>
             <button className="btn-action">
               📊 Health Records
             </button>
