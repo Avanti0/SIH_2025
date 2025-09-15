@@ -1,5 +1,6 @@
 import React, { useState } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
+import mockApi from '../services/mockApi';
 
 const Register = () => {
   const [formData, setFormData] = useState({
@@ -18,25 +19,13 @@ const Register = () => {
     setLoading(true);
     
     try {
-      const response = await fetch('/api/auth/register', {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-        },
-        body: JSON.stringify(formData),
-      });
-
-      const data = await response.json();
+      const data = await mockApi.register(formData);
       
-      if (response.ok) {
-        localStorage.setItem('token', data.token);
-        localStorage.setItem('user', JSON.stringify(data.user));
-        navigate('/dashboard');
-      } else {
-        alert(data.message || 'Registration failed');
-      }
+      localStorage.setItem('token', data.token);
+      localStorage.setItem('user', JSON.stringify(data.user));
+      navigate('/dashboard');
     } catch (error) {
-      alert('Connection error. Please try again.');
+      alert(error.message || 'Registration failed');
     } finally {
       setLoading(false);
     }

@@ -1,6 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { Link } from 'react-router-dom';
 import AlertNotification from '../components/AlertNotification';
+import mockApi from '../services/mockApi';
 
 const Dashboard = () => {
   const [farmStats, setFarmStats] = useState({
@@ -19,8 +20,7 @@ const Dashboard = () => {
 
   const fetchDashboardData = async () => {
     try {
-      const response = await fetch('/api/farm/dashboard');
-      const data = await response.json();
+      const data = await mockApi.getDashboard();
       setFarmStats(data);
     } catch (error) {
       console.error('Error fetching dashboard data:', error);
@@ -31,8 +31,7 @@ const Dashboard = () => {
 
   const fetchAlerts = async () => {
     try {
-      const response = await fetch('/api/alerts');
-      const data = await response.json();
+      const data = await mockApi.getAlerts();
       setAlerts(data.alerts || []);
     } catch (error) {
       console.error('Error fetching alerts:', error);

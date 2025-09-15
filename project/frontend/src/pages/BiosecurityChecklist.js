@@ -1,5 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { Link } from 'react-router-dom';
+import mockApi from '../services/mockApi';
 
 const BiosecurityChecklist = () => {
   const [checklist, setChecklist] = useState([]);
@@ -12,8 +13,7 @@ const BiosecurityChecklist = () => {
 
   const fetchChecklist = async () => {
     try {
-      const response = await fetch('/api/biosecurity/checklist');
-      const data = await response.json();
+      const data = await mockApi.getBiosecurityChecklist();
       setChecklist(data.checklist || []);
       setComplianceScore(data.complianceScore || 0);
     } catch (error) {
@@ -35,15 +35,9 @@ const BiosecurityChecklist = () => {
     const newScore = Math.round((checkedItems / totalItems) * 100);
     setComplianceScore(newScore);
 
-    // Update backend
+    // Update mock API
     try {
-      await fetch('/api/biosecurity/checklist', {
-        method: 'PUT',
-        headers: {
-          'Content-Type': 'application/json',
-        },
-        body: JSON.stringify({ checklist: updatedChecklist }),
-      });
+      await mockApi.updateBiosecurityChecklist(updatedChecklist);
     } catch (error) {
       console.error('Error updating checklist:', error);
     }

@@ -1,5 +1,6 @@
 import React, { useState } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
+import mockApi from '../services/mockApi';
 
 const Login = () => {
   const [formData, setFormData] = useState({
@@ -14,25 +15,13 @@ const Login = () => {
     setLoading(true);
     
     try {
-      const response = await fetch('/api/auth/login', {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-        },
-        body: JSON.stringify(formData),
-      });
-
-      const data = await response.json();
+      const data = await mockApi.login(formData);
       
-      if (response.ok) {
-        localStorage.setItem('token', data.token);
-        localStorage.setItem('user', JSON.stringify(data.user));
-        navigate('/dashboard');
-      } else {
-        alert(data.message || 'Login failed');
-      }
+      localStorage.setItem('token', data.token);
+      localStorage.setItem('user', JSON.stringify(data.user));
+      navigate('/dashboard');
     } catch (error) {
-      alert('Connection error. Please try again.');
+      alert(error.message || 'Login failed');
     } finally {
       setLoading(false);
     }
