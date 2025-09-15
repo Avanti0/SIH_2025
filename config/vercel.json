@@ -1,0 +1,16 @@
+{
+  "version": 2,
+  "name": "sih-2025-farm-management",
+  "builds": [
+    {
+      "src": "../project/frontend/build/**",
+      "use": "@vercel/static"
+    }
+  ],
+  "routes": [
+    {
+      "src": "/(.*)",
+      "dest": "../project/frontend/build/$1"
+    }
+  ]
+}
