@@ -19,7 +19,7 @@ const Dashboard = () => {
 
   const fetchDashboardData = async () => {
     try {
-      const response = await fetch('http://localhost:5000/api/farm/dashboard');
+      const response = await fetch('/api/farm/dashboard');
       const data = await response.json();
       setFarmStats(data);
     } catch (error) {
@@ -31,7 +31,7 @@ const Dashboard = () => {
 
   const fetchAlerts = async () => {
     try {
-      const response = await fetch('http://localhost:5000/api/alerts');
+      const response = await fetch('/api/alerts');
       const data = await response.json();
       setAlerts(data.alerts || []);
     } catch (error) {

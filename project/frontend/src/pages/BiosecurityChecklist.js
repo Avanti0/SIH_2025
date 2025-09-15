@@ -12,7 +12,7 @@ const BiosecurityChecklist = () => {
 
   const fetchChecklist = async () => {
     try {
-      const response = await fetch('http://localhost:5000/api/biosecurity/checklist');
+      const response = await fetch('/api/biosecurity/checklist');
       const data = await response.json();
       setChecklist(data.checklist || []);
       setComplianceScore(data.complianceScore || 0);
@@ -37,7 +37,7 @@ const BiosecurityChecklist = () => {
 
     // Update backend
     try {
-      await fetch('http://localhost:5000/api/biosecurity/checklist', {
+      await fetch('/api/biosecurity/checklist', {
         method: 'PUT',
         headers: {
           'Content-Type': 'application/json',
