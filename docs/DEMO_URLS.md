@@ -1,7 +1,7 @@
-# 🚀 Live Demo URLs
+# 🚀 Pashu Kavach - Live Demo URLs
 
-## **Frontend Application**
-**URL:** https://sih-2025-1cdw84jxq-avanti0s-projects.vercel.app
+## **Pashu Kavach Portal**
+**URL:** https://sih-2025-7i4yjeikm-avanti0s-projects.vercel.app
 
 ## **Demo Credentials**
 - **Mobile:** 9876543210
@@ -26,6 +26,6 @@
 Backend has Vercel authentication protection. The app currently uses mock data for demonstration purposes.
 
 ## **Share with Friends:**
-Send this URL: https://sih-2025-1cdw84jxq-avanti0s-projects.vercel.app
+Send this URL: https://sih-2025-7i4yjeikm-avanti0s-projects.vercel.app
 
 They can register with any mobile number and explore all features!

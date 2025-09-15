@@ -1,11 +1,11 @@
-# Digital Farm Management Portal
+# Pashu Kavach - Digital Farm Management Portal
 **SIH 2025 - Biosecurity for Pig and Poultry Farms**
 
 ## 🚀 Live Demo
-**URL:** [Farm Management Portal](https://sih-2025-7i4yjeikm-avanti0s-projects.vercel.app)
+**URL:** [Pashu Kavach Portal](https://sih-2025-7i4yjeikm-avanti0s-projects.vercel.app)
 
 ## 📋 Overview
-A comprehensive digital platform helping pig and poultry farmers implement and monitor biosecurity measures, improving farm productivity, disease prevention, and record-keeping.
+Pashu Kavach is a comprehensive digital platform helping pig and poultry farmers implement and monitor biosecurity measures, improving farm productivity, disease prevention, and record-keeping.
 
 ## ✨ Key Features
 - 📱 **Mobile-First Authentication** - Register/login with mobile numbers
@@ -17,8 +17,8 @@ A comprehensive digital platform helping pig and poultry farmers implement and m
 
 ## 🛠️ Tech Stack
 - **Frontend:** React.js, React Router, CSS3
-- **Backend:** Node.js, Express.js
-- **Storage:** LocalStorage (Demo), MongoDB (Production)
+- **Backend:** Node.js, Express.js, PostgreSQL
+- **Storage:** LocalStorage (Demo), PostgreSQL (Production)
 - **Deployment:** Vercel
 
 ## 📁 Project Structure
@@ -55,10 +55,10 @@ SIH_2025/
 - [Demo URLs](docs/DEMO_URLS.md)
 
 ## 🚀 Quick Start
-1. Visit the [live demo](https://sih-2025-7i4yjeikm-avanti0s-projects.vercel.app)
+1. Visit the [Pashu Kavach demo](https://sih-2025-7i4yjeikm-avanti0s-projects.vercel.app)
 2. Register with any 10-digit mobile number
 3. Explore the dashboard and biosecurity checklist
 4. Experience real-time compliance scoring
 
 ---
-**Smart India Hackathon 2025** | **Digital Farm Management Portal**
+**Smart India Hackathon 2025** | **Pashu Kavach - Digital Farm Management Portal**

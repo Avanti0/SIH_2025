@@ -30,7 +30,7 @@ const Login = () => {
   return (
     <div className="login-container">
       <div className="login-card">
-        <h2>FarmShield Login</h2>
+        <h2>Pashu Kavach Login</h2>
         <form onSubmit={handleSubmit}>
           <div className="form-group">
             <input

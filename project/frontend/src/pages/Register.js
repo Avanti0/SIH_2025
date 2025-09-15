@@ -34,7 +34,7 @@ const Register = () => {
   return (
     <div className="register-container">
       <div className="register-card">
-        <h2>Register Your Farm</h2>
+        <h2>Pashu Kavach Registration</h2>
         <form onSubmit={handleSubmit}>
           <div className="form-group">
             <input

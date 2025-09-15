@@ -47,7 +47,7 @@ const Dashboard = () => {
   return (
     <div className="dashboard">
       <header className="dashboard-header">
-        <h1>Farm Dashboard</h1>
+        <h1>Pashu Kavach Dashboard</h1>
         <div className="user-info">
           <span>Welcome, {user.name || 'Farmer'}</span>
         </div>
