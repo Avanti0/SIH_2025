@@ -1,29 +1,21 @@
 const express = require('express');
 const cors = require('cors');
+require('dotenv').config();
+
+const User = require('./models/User');
+const Farm = require('./models/Farm');
+const Compliance = require('./models/Compliance');
+const Alert = require('./models/Alert');
 
 const app = express();
 
-// Middleware - Allow all origins for demo
-app.use(cors({
-  origin: '*',
-  methods: ['GET', 'POST', 'PUT', 'DELETE', 'OPTIONS'],
-  allowedHeaders: ['Content-Type', 'Authorization']
-}));
-
+// Middleware
+app.use(cors());
 app.use(express.json());
-
-// In-memory data store for prototype
-let users = [];
-let farms = {};
-let biosecurity = {};
-let alerts = [
-  { id: 1, type: 'warning', message: 'Avian Flu reported 15km away', time: '2 hours ago' },
-  { id: 2, type: 'info', message: 'Vaccination reminder due tomorrow', time: '1 day ago' }
-];
 
 // Root route
 app.get('/', (req, res) => {
-  res.json({ message: 'Farm Management API is running!' });
+  res.json({ message: 'Farm Management API with PostgreSQL is running!' });
 });
 
 // Health check
@@ -32,139 +24,163 @@ app.get('/api/health', (req, res) => {
 });
 
 // Auth routes
-app.post('/api/auth/register', (req, res) => {
+app.post('/api/auth/register', async (req, res) => {
   try {
     const { name, mobile, password, farmType, farmSize, location } = req.body;
     
-    if (users.find(u => u.mobile === mobile)) {
-      return res.status(400).json({ message: 'User already exists' });
+    // Check if user exists
+    const existingUser = await User.findByPhone(mobile);
+    if (existingUser) {
+      return res.status(400).json({ message: 'User already exists with this mobile number' });
     }
 
-    const user = { id: Date.now(), name, mobile, password, farmType, farmSize, location };
-    users.push(user);
-    
-    // Initialize farm and biosecurity data
-    farms[user.id] = {
-      totalAnimals: 0,
-      healthyAnimals: 0,
-      complianceScore: 0,
-      lastInspection: new Date().toISOString().split('T')[0]
-    };
+    // Create user
+    const user = await User.create({
+      name,
+      phone: mobile,
+      email: `${mobile}@farm.com`, // Generate email from mobile
+      password,
+      role: 'farmer'
+    });
 
-    biosecurity[user.id] = {
-      checklist: [
-        { id: 1, item: 'Footbath at farm entrance', checked: false, critical: true },
-        { id: 2, item: 'Visitor log maintained', checked: false, critical: true },
-        { id: 3, item: 'Animals isolated when sick', checked: false, critical: true },
-        { id: 4, item: 'Feed storage properly secured', checked: false, critical: false },
-        { id: 5, item: 'Water sources protected', checked: false, critical: true },
-        { id: 6, item: 'Waste disposal system in place', checked: false, critical: true },
-        { id: 7, item: 'Regular cleaning schedule followed', checked: false, critical: false },
-        { id: 8, item: 'Vaccination records updated', checked: false, critical: true },
-        { id: 9, item: 'Equipment disinfected regularly', checked: false, critical: false },
-        { id: 10, item: 'Dead animal disposal protocol', checked: false, critical: true }
-      ],
-      complianceScore: 0
-    };
+    // Create farm for user
+    const farm = await Farm.create({
+      userId: user.user_id,
+      farmName: `${name}'s Farm`,
+      farmType,
+      location
+    });
 
-    res.json({ 
-      message: 'Registration successful', 
-      token: 'demo_token', 
-      user: { id: user.id, name, mobile, farmType } 
+    res.json({
+      message: 'Registration successful',
+      token: 'demo_token',
+      user: {
+        id: user.user_id,
+        name: user.name,
+        mobile,
+        farmType,
+        farmId: farm.farm_id
+      }
     });
   } catch (error) {
-    res.status(500).json({ message: 'Server error' });
+    console.error('Registration error:', error);
+    res.status(500).json({ message: 'Registration failed' });
   }
 });
 
-app.post('/api/auth/login', (req, res) => {
+app.post('/api/auth/login', async (req, res) => {
   try {
     const { mobile, password } = req.body;
-    const user = users.find(u => u.mobile === mobile && u.password === password);
     
+    const user = await User.findByPhone(mobile);
     if (!user) {
       return res.status(400).json({ message: 'Invalid credentials' });
     }
 
-    res.json({ 
-      message: 'Login successful', 
-      token: 'demo_token', 
-      user: { id: user.id, name: user.name, mobile, farmType: user.farmType } 
+    const isValidPassword = await User.validatePassword(password, user.password_hash);
+    if (!isValidPassword) {
+      return res.status(400).json({ message: 'Invalid credentials' });
+    }
+
+    // Get user's farm
+    const farms = await Farm.findByUserId(user.user_id);
+    const farm = farms[0]; // Get first farm
+
+    res.json({
+      message: 'Login successful',
+      token: 'demo_token',
+      user: {
+        id: user.user_id,
+        name: user.name,
+        mobile: user.phone,
+        farmType: farm?.farm_type || 'poultry',
+        farmId: farm?.farm_id
+      }
     });
   } catch (error) {
-    res.status(500).json({ message: 'Server error' });
+    console.error('Login error:', error);
+    res.status(500).json({ message: 'Login failed' });
   }
 });
 
 // Farm routes
-app.get('/api/farm/dashboard', (req, res) => {
+app.get('/api/farm/dashboard', async (req, res) => {
   try {
-    const userId = 1;
-    const farmData = farms[userId] || farms[Object.keys(farms)[0]] || {
+    // For demo, use farm_id = 1 or get from token
+    const farmId = 1;
+    const stats = await Farm.getDashboardStats(farmId);
+    res.json(stats);
+  } catch (error) {
+    console.error('Dashboard error:', error);
+    // Fallback to mock data
+    res.json({
       totalAnimals: 250,
       healthyAnimals: 245,
       complianceScore: 85,
       lastInspection: '2025-09-15'
-    };
-    
-    res.json(farmData);
-  } catch (error) {
-    res.status(500).json({ message: 'Server error' });
+    });
   }
 });
 
 // Biosecurity routes
-app.get('/api/biosecurity/checklist', (req, res) => {
+app.get('/api/biosecurity/checklist', async (req, res) => {
   try {
-    const userId = 1;
-    const data = biosecurity[userId] || biosecurity[Object.keys(biosecurity)[0]] || {
+    const farmId = 1; // Demo farm
+    const data = await Compliance.getChecklist(farmId);
+    res.json(data);
+  } catch (error) {
+    console.error('Checklist error:', error);
+    // Fallback to mock data
+    res.json({
       checklist: [
         { id: 1, item: 'Footbath at farm entrance', checked: false, critical: true },
         { id: 2, item: 'Visitor log maintained', checked: false, critical: true },
-        { id: 3, item: 'Animals isolated when sick', checked: false, critical: true },
-        { id: 4, item: 'Feed storage properly secured', checked: false, critical: false },
-        { id: 5, item: 'Water sources protected', checked: false, critical: true }
+        { id: 3, item: 'Animals isolated when sick', checked: false, critical: true }
       ],
       complianceScore: 0
-    };
-    
-    res.json(data);
-  } catch (error) {
-    res.status(500).json({ message: 'Server error' });
+    });
   }
 });
 
-app.put('/api/biosecurity/checklist', (req, res) => {
+app.put('/api/biosecurity/checklist', async (req, res) => {
   try {
     const { checklist } = req.body;
-    const userId = 1;
+    const farmId = 1; // Demo farm
     
-    if (biosecurity[userId]) {
-      biosecurity[userId].checklist = checklist;
-      const totalItems = checklist.length;
-      const checkedItems = checklist.filter(item => item.checked).length;
-      biosecurity[userId].complianceScore = Math.round((checkedItems / totalItems) * 100);
-      
-      if (farms[userId]) {
-        farms[userId].complianceScore = biosecurity[userId].complianceScore;
-      }
+    // Update each item
+    for (const item of checklist) {
+      const status = item.checked ? 'completed' : 'pending';
+      await Compliance.updateItem(farmId, item.id, status);
     }
+
+    // Recalculate score
+    const updatedData = await Compliance.getChecklist(farmId);
     
-    res.json({ 
-      message: 'Checklist updated', 
-      complianceScore: biosecurity[userId]?.complianceScore || 0 
+    res.json({
+      message: 'Checklist updated',
+      complianceScore: updatedData.complianceScore
     });
   } catch (error) {
-    res.status(500).json({ message: 'Server error' });
+    console.error('Update checklist error:', error);
+    res.status(500).json({ message: 'Update failed' });
   }
 });
 
 // Alert routes
-app.get('/api/alerts', (req, res) => {
+app.get('/api/alerts', async (req, res) => {
   try {
+    const farmId = 1; // Demo farm
+    const alerts = await Alert.getByFarmId(farmId);
     res.json({ alerts });
   } catch (error) {
-    res.status(500).json({ message: 'Server error' });
+    console.error('Alerts error:', error);
+    // Fallback to mock data
+    res.json({
+      alerts: [
+        { id: 1, type: 'warning', message: 'Avian Flu reported 15km away', time: '2 hours ago' },
+        { id: 2, type: 'info', message: 'Vaccination reminder due tomorrow', time: '1 day ago' }
+      ]
+    });
   }
 });
 
