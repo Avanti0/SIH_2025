@@ -1,0 +1,125 @@
+-- Add these lines at the very top of your code
+DROP TABLE IF EXISTS users CASCADE;
+DROP TABLE IF EXISTS farms CASCADE;
+DROP TABLE IF EXISTS risk_assessment CASCADE;
+DROP TABLE IF EXISTS compliance CASCADE;
+DROP TABLE IF EXISTS alerts CASCADE;
+DROP TABLE IF EXISTS training_modules CASCADE;
+DROP TABLE IF EXISTS training_progress CASCADE;
+
+-- Create the users table
+CREATE TABLE users (
+    user_id SERIAL PRIMARY KEY,
+    name VARCHAR(100) NOT NULL,
+    role VARCHAR(50) CHECK (role IN ('farmer','vet','admin')),
+    phone VARCHAR(15),
+    email VARCHAR(100) UNIQUE,
+    password_hash TEXT NOT NULL,
+    created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+);
+
+-- Create the farms table
+CREATE TABLE farms (
+    farm_id SERIAL PRIMARY KEY,
+    user_id INT REFERENCES users(user_id),
+    farm_name VARCHAR(100) NOT NULL,
+    farm_type VARCHAR(20) CHECK (farm_type IN ('pig','poultry')),
+    location TEXT,
+    created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+);
+
+-- Create the risk_assessment table
+CREATE TABLE risk_assessment (
+    assessment_id SERIAL PRIMARY KEY,
+    farm_id INT REFERENCES farms(farm_id),
+    score INT NOT NULL,
+    risk_level VARCHAR(10) CHECK (risk_level IN ('low','medium','high')),
+    completed_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+);
+
+-- Create the compliance table
+CREATE TABLE compliance (
+    compliance_id SERIAL PRIMARY KEY,
+    farm_id INT REFERENCES farms(farm_id),
+    checklist_item VARCHAR(200),
+    status VARCHAR(10) CHECK (status IN ('pending','completed')),
+    updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+);
+
+-- Create the alerts table
+CREATE TABLE alerts (
+    alert_id SERIAL PRIMARY KEY,
+    farm_id INT REFERENCES farms(farm_id),
+    alert_type VARCHAR(50),
+    message TEXT,
+    severity VARCHAR(10) CHECK (severity IN ('low','medium','high')),
+    created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+    resolved BOOLEAN DEFAULT FALSE
+);
+
+-- Create the training_modules table
+CREATE TABLE training_modules (
+    module_id SERIAL PRIMARY KEY,
+    title VARCHAR(100),
+    description TEXT,
+    language VARCHAR(20),
+    created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+);
+
+-- Create the training_progress table
+CREATE TABLE training_progress (
+    progress_id SERIAL PRIMARY KEY,
+    user_id INT REFERENCES users(user_id),
+    module_id INT REFERENCES training_modules(module_id),
+    status VARCHAR(20) CHECK (status IN ('not_started','in_progress','completed')),
+    updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+);
+
+
+--
+-- INSERT STATEMENTS
+--
+
+-- Insert a user (farmer)
+INSERT INTO users (name, role, phone, email, password_hash)
+VALUES ('Ramesh', 'farmer', '9876543210', 'ramesh@example.com', 'some_hashed_password');
+
+-- Insert a farm for the user
+INSERT INTO farms (user_id, farm_name, farm_type, location)
+VALUES (1, 'Green Valley Farm', 'poultry', 'Telangana');
+
+-- Insert a risk assessment record for the farm
+INSERT INTO risk_assessment (farm_id, score, risk_level)
+VALUES (1, 7, 'medium');
+
+-- Insert compliance data for the farm
+INSERT INTO compliance (farm_id, checklist_item, status)
+VALUES (1, 'Cleaned and disinfected coop', 'completed'),
+       (1, 'Restricted visitor access', 'completed'),
+       (1, 'Vaccination records updated', 'pending');
+
+-- Insert a test alert for the farm
+INSERT INTO alerts (farm_id, alert_type, message, severity)
+VALUES (1, 'Health Alert', 'Symptoms of respiratory illness in a flock', 'high');
+
+-- Insert training modules
+INSERT INTO training_modules (title, description, language)
+VALUES ('Biosecurity Basics', 'An introduction to biosecurity measures for poultry farms.', 'English'),
+       ('Emergency Protocols', 'Step-by-step guide for disease outbreaks.', 'Hindi');
+
+-- Insert a training progress record for the user
+INSERT INTO training_progress (user_id, module_id, status)
+VALUES (1, 1, 'in_progress');
+
+
+--
+-- SELECT STATEMENTS to check your work
+--
+
+SELECT * FROM users;
+SELECT * FROM farms;
+SELECT * FROM risk_assessment;
+SELECT * FROM compliance;
+SELECT * FROM alerts;
+SELECT * FROM training_modules;
+SELECT * FROM training_progress;
