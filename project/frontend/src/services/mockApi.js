@@ -62,10 +62,48 @@ const mockApi = {
   async getDashboard() {
     await new Promise(resolve => setTimeout(resolve, 500));
     
+    // Get compliance score from biosecurity data
+    const biosecurityData = JSON.parse(localStorage.getItem('biosecurityData') || '{}');
+    const complianceScore = biosecurityData.complianceScore || 0;
+    
+    // Get animal counts from health records
+    let healthRecords = JSON.parse(localStorage.getItem('healthRecords') || '[]');
+    
+    // If no records exist, create some initial ones
+    if (healthRecords.length === 0) {
+      healthRecords = [
+        { id: 1, animalId: 'PIG001', date: '2025-09-15', condition: 'Healthy', treatment: 'Routine checkup' },
+        { id: 2, animalId: 'PIG002', date: '2025-09-15', condition: 'Healthy', treatment: 'Vaccination' },
+        { id: 3, animalId: 'PIG003', date: '2025-09-14', condition: 'Fever', treatment: 'Antibiotics' },
+        { id: 4, animalId: 'CHICKEN001', date: '2025-09-15', condition: 'Healthy', treatment: 'Routine checkup' },
+        { id: 5, animalId: 'CHICKEN002', date: '2025-09-15', condition: 'Healthy', treatment: 'Vaccination' }
+      ];
+      localStorage.setItem('healthRecords', JSON.stringify(healthRecords));
+    }
+    
+    const uniqueAnimals = [...new Set(healthRecords.map(record => record.animalId))];
+    const totalAnimals = uniqueAnimals.length;
+    
+    // Count healthy animals (animals without recent illness records)
+    const recentRecords = healthRecords.filter(record => {
+      const recordDate = new Date(record.date);
+      const weekAgo = new Date();
+      weekAgo.setDate(weekAgo.getDate() - 7);
+      return recordDate >= weekAgo;
+    });
+    
+    const sickAnimals = [...new Set(recentRecords
+      .filter(record => record.condition.toLowerCase().includes('sick') || 
+                       record.condition.toLowerCase().includes('fever') ||
+                       record.condition.toLowerCase().includes('disease'))
+      .map(record => record.animalId))];
+    
+    const healthyAnimals = totalAnimals - sickAnimals.length;
+    
     return {
-      totalAnimals: 250,
-      healthyAnimals: 245,
-      complianceScore: 85,
+      totalAnimals: totalAnimals,
+      healthyAnimals: healthyAnimals,
+      complianceScore: complianceScore,
       lastInspection: '2025-09-15'
     };
   },
@@ -73,12 +111,50 @@ const mockApi = {
   async getAlerts() {
     await new Promise(resolve => setTimeout(resolve, 300));
     
-    return {
-      alerts: [
-        { id: 1, type: 'warning', message: 'Avian Flu reported 15km away', time: '2 hours ago' },
-        { id: 2, type: 'info', message: 'Vaccination reminder due tomorrow', time: '1 day ago' }
-      ]
-    };
+    // Generate dynamic alerts based on compliance and other factors
+    const alerts = [];
+    const biosecurityData = JSON.parse(localStorage.getItem('biosecurityData') || '{}');
+    const complianceScore = biosecurityData.complianceScore || 0;
+    
+    // Low compliance alert
+    if (complianceScore < 70) {
+      alerts.push({
+        id: 1,
+        type: 'warning',
+        message: `Biosecurity compliance is low (${complianceScore}%). Please complete checklist items.`,
+        time: '1 hour ago',
+        priority: 'high'
+      });
+    }
+    
+    // Disease outbreak alert (simulated)
+    alerts.push({
+      id: 2,
+      type: 'danger',
+      message: 'Avian Flu outbreak reported 15km from your location. Increase biosecurity measures.',
+      time: '2 hours ago',
+      priority: 'critical'
+    });
+    
+    // Vaccination reminder
+    alerts.push({
+      id: 3,
+      type: 'info',
+      message: 'Vaccination schedule reminder: Next vaccination due in 3 days.',
+      time: '1 day ago',
+      priority: 'medium'
+    });
+    
+    // Feed stock alert
+    alerts.push({
+      id: 4,
+      type: 'warning',
+      message: 'Feed stock running low. Current stock: 500kg remaining.',
+      time: '6 hours ago',
+      priority: 'medium'
+    });
+    
+    return { alerts };
   },
 
   async getBiosecurityChecklist() {
@@ -111,19 +187,37 @@ const mockApi = {
     
     const totalItems = checklist.length;
     const checkedItems = checklist.filter(item => item.checked).length;
-    const complianceScore = Math.round((checkedItems / totalItems) * 100);
+    const criticalItems = checklist.filter(item => item.critical).length;
+    const checkedCriticalItems = checklist.filter(item => item.critical && item.checked).length;
+    
+    // Weight critical items more heavily in scoring
+    const criticalScore = (checkedCriticalItems / criticalItems) * 70;
+    const regularScore = ((checkedItems - checkedCriticalItems) / (totalItems - criticalItems)) * 30;
+    const complianceScore = Math.round(criticalScore + regularScore);
 
     const data = {
       checklist,
-      complianceScore
+      complianceScore: Math.max(0, complianceScore)
     };
 
     localStorage.setItem('biosecurityData', JSON.stringify(data));
 
     return {
       message: 'Checklist updated successfully',
-      complianceScore
+      complianceScore: data.complianceScore
     };
+  },
+
+  async dismissAlert(alertId) {
+    await new Promise(resolve => setTimeout(resolve, 200));
+    
+    const dismissedAlerts = JSON.parse(localStorage.getItem('dismissedAlerts') || '[]');
+    if (!dismissedAlerts.includes(alertId)) {
+      dismissedAlerts.push(alertId);
+      localStorage.setItem('dismissedAlerts', JSON.stringify(dismissedAlerts));
+    }
+    
+    return { message: 'Alert dismissed' };
   }
 };
 
